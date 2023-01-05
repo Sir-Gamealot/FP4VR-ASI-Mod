@@ -103,7 +103,6 @@ protected:
 class AppearanceHUD : public CustomHUD
 {
 public:
-	VRHelper *vrHelper;
 	char c[2048];
 	WCHAR txt[4096];
 	Tick secondDelay, startupDelay, tick;
@@ -111,76 +110,15 @@ public:
 	AppearanceHUD() : CustomHUD("MassEffect") {		
 		secondDelay.start();
 		startupDelay.start();
-		vrHelper = new VRHelper();
 	}
 
 	virtual ~AppearanceHUD() {
-		if (vrHelper != NULL) {
-			vrHelper->Shutdown();
-			vrHelper = NULL;
-		}
 	}
 
 	void Update(UCanvas* canvas, ABioPawn* pawn, ABioPlayerController* playerController) {
 		__super::Update(canvas);
 		_pawn = pawn;
 		_playerController = playerController;
-
-		if (!startupDelay.is(10, true)) {
-			vrHelper->log("Before starting delay of 10 seconds is over.");
-			return;
-		}
-
-		// Preinit
-		if (!secondDelay.is(1, false))
-			return;
-
-		if (!vrHelper->isValid()) {
-			vrHelper->log("vrHelper is NOT active");
-			if (vrHelper->Init()) {
-				vrHelper->log("vrHelper is valid");
-				tick.start();
-			} else
-				return;
-		}
-
-		VROrientation orientation;
-		//vrHelper->Get_HMD_Orientation(orientation);
-		vrHelper->Get_Controller_Orientation(orientation, VPX_LEFT);
-		sprintf(c, "Left Yaw = %f", orientation.Yaw);
-		vrHelper->log(c);
-		/*vrHelper->Get_Controller_Orientation(orientation, VPX_RIGHT);
-		sprintf(c, "Right Yaw = %f", orientation.Yaw);
-		vrHelper->log(c);*/
-
-		//playerController->HandleWalking
-
-		//_playerController->Rotation.Pitch = (int)(204.8 * orientation.Pitch);
-		//_playerController->Rotation.Pitch = (int)(204.8 * orientation.Pitch);
-		//_playerController->Rotation.Yaw = (int)(204.8f * orientation.Yaw);
-		//_playerController->Rotation.Roll = (int)(204.8 * orientation.Roll);
-
-		// Postinit		
-		//vrHelper->Update();
-		//int yaw = (int)(32768.0f + vrHelper.headsetYaw * 32768.f);
-		//if (vrHelper.isValid()) {
-		//_playerController->Rotation.Yaw = yaw;
-		//}
-
-		FVector fv;
-		//fv.X = (int)(204.8f * cos(orientation.Yaw * M_PI / 180.0f));
-		//fv.Y = (int)(204.8f * sin(orientation.Yaw * M_PI / 180.0f));
-		//fv.Z = 100;
-
-		double angleRad = orientation.Yaw * M_PI / 180.0f;
-		fv.X = 10.0 * cos(angleRad);
-		fv.Y = 0;
-		fv.Z = 10.0 * sin(angleRad);
-
-		if (tick.is(1, false)) {
-			sprintf(c, "Yaw = %f", orientation.Yaw);
-			vrHelper->log(c);
-		}		
 	}
 
 	void Draw() override {
@@ -189,23 +127,7 @@ public:
 		SetTextScale();
 		yIndex = 3;
 
-		// -----------------------------
-		textScale = 1.5f;
-		if (NULL != vrHelper && NULL != vrHelper->message) {
-			wsprintf(txt, L"Message: %S", vrHelper->message);
-			RenderTextLine(txt, 255, 0, 0, 1);
-			RenderTextLine(L"\n", 255, 0, 0, 1);
-			RenderTextLine(L"\n", 255, 0, 0, 1);
-		}
-		if (NULL != vrHelper && NULL != vrHelper->lastErrorMessage) {
-			wsprintf(txt, L"Last error: %S", vrHelper->lastErrorMessage);
-			RenderTextLine(txt, 255, 0, 0, 1);
-			RenderTextLine(L"\n", 255, 0, 0, 1);
-			RenderTextLine(L"\n", 255, 0, 0, 1);
-		}
-		//-------------------------------
-
-		textScale = 1.0f;
+		textScale = 1.25f;
 
 		RenderTextLine(L"Appearance Profile", 255, 229, 0, 1.0f);
 		if (_pawn) {
