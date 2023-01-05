@@ -1,6 +1,10 @@
 #include <string>
 #include <ctime>
+#include <fstream>
 #include <iostream>
+#include <cstdio>
+
+#define GAMELE1
 
 #include "main.h"
 #include "../../Shared-ASI/Interface.h"
@@ -18,19 +22,93 @@ SPI_PLUGINSIDE_ASYNCATTACH;
 
 AppearanceHUD* customHud = new AppearanceHUD;
 
-std::ofstream logFile;
+ME3TweaksASILogger logger("Function Logger v2", "LE1FunctionLog.log");
 char token[1024];
 char txt[4096];
-time_t startTime, now;
 
+VRHelper* vrHelper;
+
+#define PATTERN_PROCESSINTERNAL_PH          /*"40 53 55 56 57 */ "48 81 EC 88 00 00 00 48 8B ?? ?? ?? ?? ?? 48 33 C4 48 89 44 24 70 48 8B 01 48 8B DA 48 8B 52 14"
 
 // ======================================================================
-// ExecHandler hook
+// ExecHandler and ProcessInternal hook
 // ======================================================================
 
 typedef unsigned (*tExecHandler)(UEngine* Context, wchar_t* cmd, void* unk);
 tExecHandler ExecHandler = nullptr;
 tExecHandler ExecHandler_orig = nullptr;
+
+typedef void (*tProcessInternal)(UObject* Context, FFrame* Stack, void* Result);
+tProcessInternal ProcessInternal = nullptr;
+tProcessInternal ProcessInternal_orig = nullptr;
+
+BYTE* bin;
+static bool yes = false;
+
+#define F_DEGREES_TO_GAME_ROTATION_UNITS 204.8f // Factor is from 32768.f / 180.f
+
+Tick tenSeconds;
+
+void ProcessInternal_hook(UObject* Context, FFrame* Stack, void* Result) {
+
+    if (tenSeconds.is(10, false)) {
+        if (!vrHelper->isValid()) {
+            logger.writeToLog("vrHelper is NOT active, attempting to init...", true, true, true);
+            if (vrHelper->Init()) {
+                logger.writeToLog("vrHelper is valid", true, true, true);
+            }
+        }
+    }
+
+    if(!yes) {
+        try {
+            if (Stack != NULL) {
+                UStruct* node = Stack->Node;
+                if (node != NULL) {
+                    const auto szName = node->GetFullName(true);
+                    if (szName != NULL) {
+                        if (
+                            strstr(szName, "BioPlayerController.PlayerWalking.PlayerMoveExplore")                            
+                            )
+                        {
+                            //logger.writeToLog(string_format("Found: %s", szName), true, true);
+                            //yes = true;
+                            //logger.writeToLog(string_format("Data %d, Count %d, Max %d", node->Script.Data, node->Script.Count, node->Script.Max), true, true);
+                            //node->Script.Data = bin;
+                            //node->Script.
+                            //ProcessInternal(Context, Stack, Result);
+							//float* p = reinterpret_cast<float*>(Stack->Locals + 12 + 0);
+                            FRotator* rot = reinterpret_cast<FRotator*>(Stack->Locals + 12);
+                            if (NULL != vrHelper && vrHelper->isValid()) {
+                                float before = rot->Yaw;
+                                VROrientation orr;
+                                vrHelper->Get_Controller_Orientation(orr, VPX_LEFT);
+                                float after = 32768.0f + orr.yaw * F_DEGREES_TO_GAME_ROTATION_UNITS;
+                                rot->Yaw = int(after);
+                                //logger.writeToConsole(string_format("Yaw before: %f, after %f", before, after));
+                            }
+							//logger.writeToConsole(string_format("Value = %3.3f", p[0].Yaw));
+                            //logger.writeToConsole(string_format("Player Yaw Value = %d", rot->Yaw));
+                            //logger.flush();
+                            //logger.writeToConsole(string_format("VorpX is %s", (vrHelper->isValid() ? "valid" : "not valid") ));                            
+                        }
+                    }
+                }
+            }
+        } catch (...) {
+            logger.writeToLog(string_format("%s \n", "Exception occurred inside ProcessInternal_hook"), true);
+            logger.flush();
+        }
+    } else {
+        //Stack->Code = bin;
+    }
+
+	// YOUR CODE HERE
+    {//if (!yes) {
+        ProcessInternal_orig(Context, Stack, Result);
+    }
+	// OR HERE TO MODIFY THE RETURN
+}
 
 unsigned ExecHandler_hook(UEngine* Context, wchar_t* cmd, void* unk) {
     if (ExecHandler_orig(Context, cmd, unk)) {
@@ -83,32 +161,6 @@ void ProcessEvent_hook(UObject* Context, UFunction* Function, void* Parms, void*
         }
     }
     
-#ifdef DEBUG_LOG
-    now = time(NULL);
-    long long diff = now - startTime;
-    if (diff > 10) {
-        startTime = now;
-        std::ifstream tokenFile;
-        tokenFile.open("Token.txt", ios_base::out);
-		if (tokenFile.is_open()) {
-			tokenFile.seekg(0, ios_base::beg);
-			tokenFile.read(token, sizeof(token));
-			tokenFile.close();
-        } else {
-            sprintf(token, "");
-        }
-    }
-    if (strlen(token) > 0) {
-        if (strstr(Function->GetFullName(), token)) {
-		//if (strstr(Function->GetFullName(), "BioPlayerController.PlayerWalking.PlayerMove")) {
-            char* name = Function->GetName();
-            char* nameCPP = Function->GetNameCPP();
-            snprintf(txt, sizeof(txt), "Fullname %s, name %s, nameCPP %s", fullName, name, nameCPP);
-            logFile << txt << endl;
-        }
-    }
-#endif
-
     ProcessEvent_orig(Context, Function, Parms, Result);
 }
 
@@ -117,76 +169,59 @@ void PlayerMoveExploreHandler_hook(float DeltaTime, float MoveMag, float MoveAng
     PlayerMoveExploreHandler_orig(DeltaTime, MoveMag, MoveAngle, MoveRot);
 }
 
-
 SPI_IMPLEMENT_ATTACH
 {
     Common::OpenConsole();
 
-    if (!logFile.is_open()) {
-		logFile.open("Main.log", ios_base::out);
-        
-		fs::permissions("Main.log",
-			fs::perms::all,
-			fs::perm_options::replace);
-    }
+	logger.writeToLog("FP2VR-ASI-Mod started...", true, true, true);
 
-    startTime = time(NULL);
-
-    memset(token, 0, sizeof(token));
+    //loadBin("c:/Steam/steamapps/common/Mass Effect Legendary Edition/Game/ME1/Binaries/Win64/ASI/PlayerMoveExploreModded2.bin", "rb");
 
     INIT_CHECK_SDK()
+    INIT_FIND_PATTERN_POSTHOOK(ProcessInternal, PATTERN_PROCESSINTERNAL_PH);
 
-/*
-    // ProcessEvent
-    //INIT_FIND_PATTERN_POSTHOOK(ProcessEvent, // 40 55 41 56 41 // "57 48 81 EC 90 00 00 00 48 8D 6C 24 20");
-    if (auto rc = InterfacePtr->InstallHook(MYHOOK "ProcessEvent", ProcessEvent, ProcessEvent_hook, (void**)&ProcessEvent_orig);
+    if (auto rc = InterfacePtr->InstallHook(MYHOOK "CallFunction", ProcessInternal, ProcessInternal_hook, (void**)&ProcessInternal_orig);
         rc != SPIReturn::Success) {
         writeln(L"Attach - failed to hook ProcessEvent: %d / %s", rc, SPIReturnToString(rc));
         return false;
+    } else {
+        writeln(L"Attach - successfully hooked ProcessEvent: %d / %s", rc, SPIReturnToString(rc));
     }
 
-    if (const auto rc = InterfacePtr->FindPattern(reinterpret_cast<void**>(&ExecHandler), "48 8b c4 48 89 50 10 55 56 57 41 54 41 55 41 56 41 57 48 8d a8 d8 fe ff ff");
-        rc != SPIReturn::Success) {
-        writeln(L"Attach - failed to find ExecHandler pattern: %d / %s", rc, SPIReturnToString(rc));
-        return false;
-    }
-    if (const auto rc = InterfacePtr->InstallHook(MYHOOK "ExecHandler", ExecHandler, ExecHandler_hook, reinterpret_cast<void**>(&ExecHandler_orig));
-        rc != SPIReturn::Success) {
-        writeln(L"Attach - failed to hook ExecHandler: %d / %s", rc, SPIReturnToString(rc));
-        return false;
-    }
-*/
-
-    //BioPlayerController.PlayerWalking.PlayerMoveExplore
-    INIT_FIND_PATTERN(PlayerMoveExploreHandler, "0F 00 5B 6E 00 00 2E DB 18 00 00 01 4E FB FF FF 07 2D 00 72 00 5B 6E 00 00 2A 16 04 0B 0F 35 96 FB FF FF EA FA FF FF 00 01 00 5D 6E 00 00 35 96");
-	if (auto rc = InterfacePtr->InstallHook(MYHOOK "PlayerMoveExploreHandler", PlayerMoveExploreHandler, PlayerMoveExploreHandler_hook, (void**)&PlayerMoveExploreHandler_orig);
-		rc != SPIReturn::Success) {
-		writeln(L"Attach - failed to hook PlayerMoveExploreHandler: %d / %s", rc, SPIReturnToString(rc));
-		return false;
-	}
-    if (const auto rc = InterfacePtr->FindPattern(reinterpret_cast<void**>(&PlayerMoveExploreHandler),
-        //"00 00 00 00 5A 6E 00 00 64 6E 00 00 6C 04 00 00 E8 02 00 00 0F 00 5B 6E 00 00 2E DB 18 00 00 01 4E FB FF FF 07 2D 00 72 00 5B 6E 00");
-        "C9 42 00 00 00 00 00 00 00 00 00 00 5A 6E 00 00 64 6E 00 00 6C 04 00 00 E8 02 00 00 0F 00 5B 6E 00 00 2E DB 18 00 00 01 4E FB FF FF");
-        //"0F 00 5B 6E 00 00 2E DB 18 00 00 01 4E FB FF FF 07 2D 00 72 00 5B 6E 00 00 2A 16 04 0B 0F 35 96 FB FF FF EA FA FF FF 00 01 00 5D 6E 00 00 35 96");
-        rc != SPIReturn::Success) {
-        writeln(L"Attach - failed to find PlayerMoveExploreHandler pattern: %d / %s", rc, SPIReturnToString(rc));
-        return false;
-	}
-    if (const auto rc = InterfacePtr->InstallHook(MYHOOK "T_PlayerMoveExploreHandler", PlayerMoveExploreHandler, PlayerMoveExploreHandler_hook, reinterpret_cast<void**>(&PlayerMoveExploreHandler_orig));
-		rc != SPIReturn::Success) {
-		writeln(L"Attach - failed to hook PlayerMoveExploreHandler: %d / %s", rc, SPIReturnToString(rc));
-		return false;
-	}
+    vrHelper = new VRHelper();
 
     return true;
 }
 
 SPI_IMPLEMENT_DETACH
 {
-    if (logFile.is_open()) {
-        logFile.close();
+    if (NULL != vrHelper) {
+        vrHelper->Shutdown();
+        SAFE_DELETE(vrHelper); 
     }
-
+    logger.flush();
     Common::CloseConsole();
+    return true;
+}
+
+/**
+  * Loads binary form of Unreal Script from file, as exported by ME3Tweaks' Package Editor.
+  *     This needs to be unpacked by Unreal script loader.
+  * 
+  *     Param path: Absolute or Relative to the game's exe.
+  * 
+  *     Returns true if the addr points to a valid byte array of size length.
+  */
+bool loadBin(const char* path, BYTE* addr, long& size) {
+	FILE *f = fopen(path, "rb");
+	if (f == NULL) {
+		writeln("Load of modded bins failed.");
+		return false;
+	}
+	fseek(f, 0, SEEK_END);
+	size = ftell(f) + 1;
+	bin = (BYTE*)malloc(size);
+	fread(bin, sizeof(char), size, f);
+	fclose(f);
     return true;
 }

@@ -124,19 +124,22 @@ void VRHelper::Update() {
 		//sprintf(c, "VR[%d]: %f, %f, %f", k++, headsetPitch, headsetYaw, headsetRoll);
 		snprintf(message, MAX_MESSAGE_LENGTH, "VorpX is %s", (vpxIsActive() ? "active!" : "NOT active!"));
 		log(message);
-    }   
+    }
+	if(isValid()) {
+
+	}
 }
 
 void VRHelper::Get_HMD_Orientation(VROrientation& vrOrientation) {
 	vpxfloat3 rez = vpxGetHeadsetRotationEuler();
-	vrOrientation.Pitch = rez.x;
-	vrOrientation.Yaw = rez.y;
-	vrOrientation.Roll = rez.z;
+	vrOrientation.pitch = rez.x;
+	vrOrientation.yaw = rez.y;
+	vrOrientation.roll = rez.z;
 }
 
 void VRHelper::Get_Controller_Orientation(VROrientation& vrOrientation, int controllerInd) {
 	vpxfloat3 rez = vpxGetControllerRotationEuler(controllerInd);
-	vrOrientation.Pitch = rez.x;
-	vrOrientation.Yaw = rez.y;
-	vrOrientation.Roll = rez.z;
+	vrOrientation.pitch = rez.x;
+	vrOrientation.yaw = rez.y;
+	vrOrientation.roll = rez.z;
 }

@@ -5,6 +5,7 @@
 #define MAX_ERROR_MESSAGE_LENGTH 4096
 
 #define SAFE_FREE_CHAR_P(p) if(NULL != p) { free(p); p = NULL; }
+#define SAFE_DELETE(p) if(NULL != p) { delete p; p = NULL; }
 
 #include "tick.h"
 #include <stdio.h>
@@ -13,7 +14,16 @@
 #include "VorpX/vorpAPI.h"
 
 typedef struct VROrientation_struct {
-	float Pitch, Yaw, Roll;
+	float pitch, yaw, roll;
+	VROrientation_struct() {
+		pitch = yaw = roll = 0.0f;
+	}
+	VROrientation_struct(float pitch, float yaw, float roll)
+	{
+		this->pitch = pitch;
+		this->yaw = yaw;
+		this->roll = roll;
+	}
 } VROrientation;
 
 class VRHelper {
@@ -26,7 +36,7 @@ private:
 	int leftControllerInd;
 public:
 	char* message, * lastErrorMessage;
-	float headsetPitch, headsetYaw, headsetRoll;
+	VROrientation headsetRotation, leftControllerRotation, rightControllerRotation;
 	VRHelper();
 	~VRHelper();
 	bool isValid() { return valid; }
