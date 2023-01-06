@@ -143,6 +143,10 @@ void ProcessInternal_hook(UObject* Context, FFrame* Stack, void* Result) {
 
 									float* MoveAngle = reinterpret_cast<float*>(Stack->Locals + 8);
 									*MoveAngle = yaw;
+
+                                    //hud->SetMiddle(400, 400);
+                                    hud->Draw();
+
 									////params->MoveRot.Yaw = yaw;
 									////params->MoveMag = -state.StickY;
 
