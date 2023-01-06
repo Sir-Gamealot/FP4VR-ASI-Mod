@@ -104,7 +104,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CustomHUD.h" />
+    <ClInclude Include="DebugUtils.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="MainHUD.h" />
+    <ClInclude Include="PCCBinaryHandler.h" />
     <ClInclude Include="tick.h" />
     <ClInclude Include="VorpX\vorpAPI.h" />
     <ClInclude Include="VRHelper.h" />
