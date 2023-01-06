@@ -13,6 +13,9 @@
 #include <string>
 #include "VorpX/vorpAPI.h"
 
+#define VR_CONTROLLER_LEFT 0
+#define VR_CONTROLLER_RIGHT 1
+
 typedef struct VROrientation_struct {
 	float pitch, yaw, roll;
 	VROrientation_struct() {
@@ -25,6 +28,25 @@ typedef struct VROrientation_struct {
 		this->roll = roll;
 	}
 } VROrientation;
+
+typedef struct VR_Controller_State_struct {
+	unsigned int IsActive;			// VPX_TRUE if active, otherwise VPX_FALSE
+	float StickX;					// Thumbstick/pad x-axis [-1|1]
+	float StickY;					// Thumbstick/pad y-axis [-1|1]
+	float Trigger;					// Trigger axis [0|1]
+	float Grip;						// Grip axis [0|1], on controllers with a grip button (e.g. Vive wands) either 0.0 or 1.0
+	float Extra0;					// Extra axis (for future use)
+	float Extra1;					// Extra axis (for future use)
+	float Extra2;					// Extra axis (for future use)
+	float Extra3;					// Extra axis (for future use)
+	float Finger0;					// Finger axis: thumb (for future use)
+	float Finger1;					// Finger axis: index (for future use)
+	float Finger2;					// Finger axis: middle (for future use)
+	float Finger3;					// Finger axis: ring (for future use)
+	float Finger4;					// Finger axis: pinky (for future use)
+	unsigned int ButtonsPressed;	// Check with a flag, e.g.: if (ButtonsPressed & VPX_CONTROLLER_BUTTON_0)
+	unsigned int ButtonsTouched;	// Check with a flag, e.g.: if (ButtonsTouched & VPX_CONTROLLER_BUTTON_0)
+} VR_Controller_State;
 
 class VRHelper {
 private:
@@ -51,5 +73,6 @@ public:
 	// Direct VorpX calls
 	void Get_HMD_Orientation(VROrientation& vrOrientation);
 	void Get_Controller_Orientation(VROrientation& orientation, int controllerInd);
+	void Get_Controller_State(VR_Controller_State& state, int controllerInd);
 };
 

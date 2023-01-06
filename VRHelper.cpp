@@ -8,7 +8,9 @@
 
 using namespace std;
 
-VRHelper::VRHelper() {
+VRHelper::VRHelper() :
+	tick(1, false)
+{
 	// Allocations
 	message = new char[MAX_MESSAGE_LENGTH];
 	lastErrorMessage = new char[MAX_ERROR_MESSAGE_LENGTH];
@@ -106,7 +108,7 @@ bool VRHelper::Init() {
 	log("VorpX initialized.");
 	setValid(true);
 
-	//vpxForceControllerRendering(true);
+	vpxForceControllerRendering(true);
 
 	return true;
 }
@@ -120,7 +122,7 @@ void VRHelper::Shutdown() {
 }
 
 void VRHelper::Update() {
-    if (tick.is(1000, false)) {
+    if (tick.is()) {
 		//sprintf(c, "VR[%d]: %f, %f, %f", k++, headsetPitch, headsetYaw, headsetRoll);
 		snprintf(message, MAX_MESSAGE_LENGTH, "VorpX is %s", (vpxIsActive() ? "active!" : "NOT active!"));
 		log(message);
@@ -142,4 +144,24 @@ void VRHelper::Get_Controller_Orientation(VROrientation& vrOrientation, int cont
 	vrOrientation.pitch = rez.x;
 	vrOrientation.yaw = rez.y;
 	vrOrientation.roll = rez.z;
+}
+
+void VRHelper::Get_Controller_State(VR_Controller_State& state, int controllerInd) {
+	VPX_CONTROLLER_STATE vpxCS = vpxGetControllerState(controllerInd);
+	state.IsActive = vpxCS.IsActive;
+	state.StickX = vpxCS.StickX;
+	state.StickY = vpxCS.StickY;
+	state.Trigger = vpxCS.Trigger;
+	state.Grip = vpxCS.Grip;
+	state.Extra0 = vpxCS.Extra0;
+	state.Extra1 = vpxCS.Extra1;
+	state.Extra2 = vpxCS.Extra2;
+	state.Extra3 = vpxCS.Extra3;
+	state.Finger0 = vpxCS.Finger0;
+	state.Finger1 = vpxCS.Finger1;
+	state.Finger2 = vpxCS.Finger2;
+	state.Finger3 = vpxCS.Finger3;
+	state.Finger4 = vpxCS.Finger4;
+	state.ButtonsPressed = vpxCS.ButtonsPressed;
+	state.ButtonsTouched = vpxCS.ButtonsTouched;
 }

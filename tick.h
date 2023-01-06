@@ -4,27 +4,31 @@
 
 class Tick {
 private:
-	time_t previous, now;
-	bool triggered;
+	time_t when, period;
+	bool once, triggered;
 
 public:
-	Tick() {
+	Tick(int period, bool once) {
+		this->period = period;
+		this->once = once;
 		triggered = false;
 	}
 
 	void start() {
-		previous = time(NULL);
+		when = time(NULL) + period;
 		triggered = false;
 	}
 
-	bool is(int seconds, bool once) {
+	bool is() {
 		if (once && triggered)
 			return true;
 
-		now = time(NULL);
-		long long diff = now - previous;
-		if(diff >= seconds) {
-			previous = diff;
+		time_t now = time(NULL);
+		if(now >= when) {
+			when = when + period;
+			if(now >= when) {
+				when = now;
+			}
 			if(once && !triggered) {
 				triggered = true;
 			}
