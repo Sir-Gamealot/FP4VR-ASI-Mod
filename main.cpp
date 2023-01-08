@@ -48,8 +48,9 @@ VR_Controller_State leftState, rightState;
 FVector hmd, left, right;
 
 // Game variables
-//FRotator *MoveRot, *Facing;
-//float *MoveAngle, *MoveMag;
+FRotator print_MoveRot, print_Facing;
+float print_MoveAngle, print_MoveMag;
+float print_Yaw;
 // Sir variables
 //FRotator *t_MoveRot, *t_FacingRot;
 //FVector *t_AccellerationVec;
@@ -75,6 +76,10 @@ static bool yes = false;
 Tick startupDelay(30, true), tenSeconds(10, false), oneSecond(1, false);
 
 ScriptDebugLogger* scriptDebugLogger;
+
+// VR variables
+float TheHeadYaw = 0.0f;
+float TheControllerYaw = 0.0f;
 
 #pragma pack(push, 4)
 typedef struct BioPlayerController_PlayerWalking_PlayerMoveExplore_Stack_struct {
@@ -130,11 +135,12 @@ float getToken() {
 }
 
 void getVRVariables() {
-	vrHelper->Get_HMD_Orientation(hmdRot);
+	//vrHelper->Get_HMD_Orientation(hmdRot);
 	//vrHelper->Get_Controller_State(leftState, VR_CONTROLLER_LEFT);
 	vrHelper->Get_Controller_Orientation(leftRot, VR_CONTROLLER_LEFT);
 	//vrHelper->Get_Controller_State(rightState, VR_CONTROLLER_RIGHT);
 	vrHelper->Get_Controller_Orientation(rightRot, VR_CONTROLLER_RIGHT);
+    TheControllerYaw = DegreesToUnrealRotationUnits(leftRot.yaw);
 }
 
 /*void getParams(UObject* Context, FFrame* Stack, void* Result) {
@@ -149,10 +155,6 @@ void getVRVariables() {
     //t_AccellerationVec = &params->t_AccelerationVec;
     //*(&params->R) = R;
 }*/
-
-float yaw = 0.0f;
-float TheHeadYaw = 0.0f;
-float TheControllerYaw = 0.0f;
 
 void MoveFRotatorToFVector(FRotator& src, FVector& dest) {
     dest.X = (float)src.Pitch;
@@ -219,6 +221,10 @@ void processWalkingExplore(UObject* Context, FFrame* Stack, void* Result) {
 	float param_MoveAngle = *(&params->MoveAngle);
 	FRotator param_MoveRot = *(&params->MoveRot);
 
+    print_MoveMag = param_MoveMag;
+    print_MoveAngle = param_MoveAngle;
+    print_MoveRot = param_MoveRot;
+
 	// Function Variables
 	ABioPlayerController* playerController = (ABioPlayerController*)Context;
 	FVector MoveDir;
@@ -228,11 +234,22 @@ void processWalkingExplore(UObject* Context, FFrame* Stack, void* Result) {
 	float MoveAccMag;
 	ABioPawn* MyBP;
 
+    static FRotator oldRot;
+    FRotator newRot = param_MoveRot;
+    {
+        int deg_PitchDelta = UnrealRotationUnitsToDegrees(newRot.Pitch - oldRot.Pitch);
+        int deg_YawDelta = UnrealRotationUnitsToDegrees(newRot.Pitch - oldRot.Pitch);
+        int deg_RollDelta = 0;
+        vrHelper->SetGameCamRotationDeltaEuler(deg_PitchDelta, deg_YawDelta, deg_RollDelta);
+        oldRot = newRot;
+    }   
+
 	MyBP = reinterpret_cast<ABioPawn*>(playerController->Pawn);
 	if (MyBP == NULL) {
 		return;
 	}
-	MoveRot2D.Yaw =  param_MoveRot.Yaw;
+    MoveRot2D.Yaw = param_MoveRot.Yaw; //TheControllerYaw;//;
+    print_Yaw = TheControllerYaw;
 	MoveRot2D.Pitch = 0;
 	MoveRot2D.Roll = 0;
 	MoveAccMag = MyBP->AccelRate;
@@ -297,7 +314,7 @@ void ProcessInternal_hook(UObject* Context, FFrame* Stack, void* Result) {
                 const auto szName = node->GetFullName(true);
                 if (szName != NULL) {
                     if (strstr(szName, "BioPlayerController.PlayerWalking.PlayerMoveExplore")) {
-                        //if (NULL != vrHelper && vrHelper->isValid()) {
+                        if (NULL != vrHelper && vrHelper->isValid()) {
 
                             // Token file holds number for direct constant input.
                             int TheYaw = 0;
@@ -315,14 +332,16 @@ void ProcessInternal_hook(UObject* Context, FFrame* Stack, void* Result) {
                             // Draw HUD
                             hud->SetTopLeft(350, 150);
                             hud->SetVRAndGameData(hmdRot, leftRot, rightRot, print_MoveMag, print_MoveAngle, print_MoveRot);
+
                             static uint64_t oldTime = timeSinceEpochMillisec();
                             uint64_t nowTime = timeSinceEpochMillisec();
                             if (nowTime - oldTime > 500) {
                                 oldTime = nowTime;
                                 hud->SetYaw(TheControllerYaw);
                             }
+
                             processed = true;
-                        //}
+                        }
                     }
                 }
             }
