@@ -12,6 +12,8 @@
 #include "../../Shared-ASI/ConsoleCommandParsing.h"
 #include "../UnrealscriptDebugger/ScriptDebugLogger.h"
 
+#pragma warning(push, 2)
+
 #include "main.h"
 #include "MainHUD.h"
 
@@ -333,3 +335,6 @@ SPI_IMPLEMENT_DETACH
 	delete scriptDebugLogger;
     return true;
 }
+
+
+#pragma warning(pop)
