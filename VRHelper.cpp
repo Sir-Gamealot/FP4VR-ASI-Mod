@@ -164,3 +164,11 @@ void VRHelper::Get_Controller_State(VR_Controller_State& state, int controllerIn
 void VRHelper::SetRenderControllers(bool state) {
 	vpxForceControllerRendering(state);
 }
+
+void VRHelper::SetGameCamRotationDeltaEuler(int pitchDelta, int yawDelta, int rollDelta) {
+	vpxfloat3 vpxRot;
+	vpxRot.x = pitchDelta;
+	vpxRot.y = yawDelta;
+	vpxRot.z = rollDelta;
+	vpxSetGameCamRotationDeltaEuler(vpxRot);
+}
