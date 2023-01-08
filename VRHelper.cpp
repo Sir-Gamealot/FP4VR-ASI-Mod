@@ -108,8 +108,6 @@ bool VRHelper::Init() {
 	log("VorpX initialized.");
 	setValid(true);
 
-	vpxForceControllerRendering(true);
-
 	return true;
 }
 
@@ -127,9 +125,6 @@ void VRHelper::Update() {
 		snprintf(message, MAX_MESSAGE_LENGTH, "VorpX is %s", (vpxIsActive() ? "active!" : "NOT active!"));
 		log(message);
     }
-	if(isValid()) {
-
-	}
 }
 
 void VRHelper::Get_HMD_Orientation(VROrientation& vrOrientation) {
@@ -164,4 +159,8 @@ void VRHelper::Get_Controller_State(VR_Controller_State& state, int controllerIn
 	state.Finger4 = vpxCS.Finger4;
 	state.ButtonsPressed = vpxCS.ButtonsPressed;
 	state.ButtonsTouched = vpxCS.ButtonsTouched;
+}
+
+void VRHelper::SetRenderControllers(bool state) {
+	vpxForceControllerRendering(state);
 }

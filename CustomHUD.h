@@ -20,11 +20,12 @@ public:
 
 protected:
 	UCanvas* _canvas;
-	float textScale = 1.5f;
+	float textScale = 1.25f;
 	float lineHeight = 14.0f;
 	int yIndex;
 	LPSTR _windowName;
 	FVector2D topLeft;
+	int m_indent = 0;
 
 	void SetTextScale() {
 		HWND activeWindow = FindWindowA(NULL, _windowName);
@@ -35,27 +36,27 @@ protected:
 				long height = rcOwner.bottom - rcOwner.top;
 
 				if (width > 2560 && height > 1440) {
-					textScale = 4.0f;
-				} else if (width > 1920 && height > 1080) {
-					textScale = 3.5f;
-				} else {
 					textScale = 3.0f;
+				} else if (width > 1920 && height > 1080) {
+					textScale = 2.5f;
+				} else {
+					textScale = 2.0f;
 				}
 				lineHeight = 14.0f * textScale;
 			}
 		}
 	}
 
-	void RenderText(std::wstring msg, const float x, const float y, const char r, const char g, const char b, const float alpha) {
+	void RenderText(std::wstring msg, const float x, const float y, const BYTE r, const BYTE g, const BYTE b, const float alpha) {
 		if (_canvas) {
-			_canvas->SetDrawColor(r, g, b, (unsigned char)(alpha * 255));
-			_canvas->SetPos(topLeft.X + x, topLeft.Y + y + 64); //+ is Y start. To prevent overlay on top of the power bar thing
+			_canvas->SetDrawColor(r, g, b, (BYTE)(alpha * 255));
+			_canvas->SetPos(topLeft.X + x + m_indent, topLeft.Y + y + 64); //+ is Y start. To prevent overlay on top of the power bar thing
 			_canvas->DrawTextW(FString{ const_cast<wchar_t*>(msg.c_str()) }, 1, textScale, textScale, nullptr);
 		}
 	}
 
-	void RenderTextLine(std::wstring msg, const char r, const char g, const char b, const float alpha) {
-		RenderText(msg, topLeft.X + 5, topLeft.Y + lineHeight * yIndex, r, g, b, alpha);
+	void RenderTextLine(std::wstring msg, const BYTE r, const BYTE g, const BYTE b, const float alpha) {
+		RenderText(msg, topLeft.X + 5 + m_indent, topLeft.Y + lineHeight * yIndex, r, g, b, alpha);
 		yIndex++;
 	}
 
@@ -93,9 +94,19 @@ protected:
 		RenderTextLine(output, 0, 255, 0, 1.0f);
 	}
 
+	void Indent() {
+		m_indent += (int)(2 * lineHeight);
+	}
+
+	void Unindent() {
+		m_indent -= (int)(2 * lineHeight);
+		if (m_indent < 0)
+			m_indent = 0;
+	}
+
 public:
 	void SetTopLeft(int left, int top) {
-		topLeft.X = left;
-		topLeft.Y = top;
+		topLeft.X = (float)left;
+		topLeft.Y = (float)top;
 	}
 };

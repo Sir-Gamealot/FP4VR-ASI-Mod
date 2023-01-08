@@ -74,5 +74,6 @@ public:
 	void Get_HMD_Orientation(VROrientation& vrOrientation);
 	void Get_Controller_Orientation(VROrientation& orientation, int controllerInd);
 	void Get_Controller_State(VR_Controller_State& state, int controllerInd);
+	void SetRenderControllers(bool state);
 };
 
