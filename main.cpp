@@ -5,6 +5,9 @@
 #include <cstdio>
 #include <math.h>
 
+#include <chrono>
+#include <cstdint>
+
 #define GAMELE1
 
 #include "../../Shared-ASI/Interface.h"
@@ -86,6 +89,12 @@ typedef struct BioPlayerController_PlayerWalking_PlayerMoveExplore_Stack_struct 
     //FRotator R;
 } BioPlayerController_PlayerWalking_PlayerMoveExplore_Stack;
 #pragma pack(pop)
+
+
+uint64_t timeSinceEpochMillisec() {
+	using namespace std::chrono;
+	return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
 
 void logState(VR_Controller_State state) {
 	logger.writeToConsole(string_format("State: Stick X = %f, Stick Y = %f, Trigger - %f", state.StickX, state.StickY, state.Trigger));
