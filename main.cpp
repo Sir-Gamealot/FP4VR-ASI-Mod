@@ -305,7 +305,7 @@ void ProcessInternal_hook(UObject* Context, FFrame* Stack, void* Result) {
 
                             // Draw HUD
                             hud->SetTopLeft(350, 150);
-                            //hud->SetVRAndGameData(hmdRot, leftRot, rightRot, param_MoveMag, MoveAngle, MoveRot);
+                            hud->SetVRAndGameData(hmdRot, leftRot, rightRot, print_MoveMag, print_MoveAngle, print_MoveRot);
                             static uint64_t oldTime = timeSinceEpochMillisec();
                             uint64_t nowTime = timeSinceEpochMillisec();
                             if (nowTime - oldTime > 500) {
