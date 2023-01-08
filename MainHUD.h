@@ -8,6 +8,10 @@ public:
 	char c[2048];
 	WCHAR txt[4096];
 	Tick secondDelay, startupDelay, tick;
+	VROrientation hmd, left, right;
+	float MoveMag, MoveAngle;
+	FRotator MoveRot;
+	float yaw;
 
 	MainHUD() : CustomHUD("MassEffect", 0, 0),
 		secondDelay(1, false),
@@ -35,32 +39,49 @@ public:
 
 		textScale = 1.25f;
 
-		RenderTextLine(L"Appearance Profile", 255, 229, 0, 1.0f);
-		if (_pawn) {
-			/*if (vrHelper.isValid()) {
-				float* rez = vrHelper.GetOrientation(vrHelper.GetHMDInd());
-				if (rez != NULL) {
-					yaw = (int)((1.0f + rez[1]) * 32768.0);
-				}
-			}*/
-			//_playerController->Rotation.Yaw = rand() * 65536;
-			//RenderYaw(L"_pawn->Rotation.Yaw = ", (float) _playerController->Rotation.Yaw);
+		wchar_t output[512];
 
-			RenderName(L"Pawn Name", _pawn->Name);
-			auto aType = _pawn->m_oBehavior->m_oActorType;
-			if (aType) {
-				RenderString(L"Actor Game Name", aType->ActorGameName);
-			}
-			yIndex++;
-			RenderMeshSection();
-			if (aType && aType->IsA(UBioPawnChallengeScaledType::StaticClass())) {
-				yIndex++;
-				RenderAppearanceSection(static_cast<UBioPawnChallengeScaledType*>(aType), _pawn->m_oBehavior->m_oAppearanceType);
-			}
-		} else {
-			RenderTextLine(L"In Mako", 0, 255, 0, 1.0f);
-		}
+		RenderTextLine(L"FP4VR:", 255, 229, 0, 1.0f);
+		RenderTextLine(L"-------------------------", 0, 0, 0, 0);
+		
+		RenderTextLine(L"Mod", 255, 229, 64, 1.0f);
+		Indent();
+		swprintf_s(output, 512, L"HMD: [X = %.0f, Y = %.0f, Z = %.0f]", hmd.pitch, hmd.yaw, hmd.roll);
+		RenderTextLine(output, 0, 255, 0, 1);
+		swprintf_s(output, 512, L"Left Controller: [X = %.0f, Y = %.0f, Z = %.0f]", left.pitch, left.yaw, left.roll);
+		RenderTextLine(output, 0, 255, 0, 1);
+		swprintf_s(output, 512, L"Right Controller: [X = %.0f, Y = %.0f, Z = %.0f]", right.pitch, right.yaw, right.roll);
+		RenderTextLine(output, 0, 255, 0, 1);
+		Unindent();
+
+		RenderTextLine(L"Game", 255, 229, 64, 1.0f);
+		Indent();
+		swprintf_s(output, 512, L"MoveMag = %.3f, MoveAngle = %.3f", MoveMag, MoveAngle);
+		RenderTextLine(output, 0, 255, 0, 1);
+		swprintf_s(output, 512, L"MoveRot: [Pitch = %d, Yaw = %d, Roll = %d]", MoveRot.Pitch, MoveRot.Yaw, MoveRot.Roll);
+		RenderTextLine(output, 0, 255, 0, 1);
+		Unindent();
+
+		RenderTextLine(L"Function", 255, 229, 64, 1.0f);
+		Indent();
+		swprintf_s(output, 512, L"Yaw = %.3f",yaw);
+		RenderTextLine(output, 0, 255, 0, 1);
+		Unindent();
 	}
+
+	void SetVRAndGameData(VROrientation& hmd, VROrientation& left, VROrientation& right, float& MoveMag, float& MoveAngle, FRotator& MoveRot)  {
+		this->hmd = hmd;
+		this->left = left;
+		this->right = right;
+		this->MoveMag = MoveMag;
+		this->MoveAngle = MoveAngle;
+		this->MoveRot = MoveRot;
+	}
+
+	void SetYaw(float yaw) {
+		this->yaw = yaw;
+	}
+
 private:
 	ABioPawn* _pawn;
 	APlayerController* _playerController;
@@ -113,16 +134,6 @@ private:
 				RenderBool(L"Hgr ModelSpec bSuppressFacePlate", modelSpec.m_bSuppressFacePlate);
 				RenderBool(L"Hgr ModelSpec bSuppressVisor", modelSpec.m_bSuppressVisor);
 			}
-		}
-	}
-
-public:
-	void SetMiddle(int rangeX, int rangeY) {
-		if (NULL != _canvas) {
-			cout << "canvas is " << _canvas << endl;
-			topLeft.X = (_canvas->SizeX - rangeX) / 2;
-			topLeft.Y = (_canvas->SizeY - rangeY) / 2;
-			cout << "TopLeft X = " << topLeft.X << ", Y = " << topLeft.Y << endl;
 		}
 	}
 };
