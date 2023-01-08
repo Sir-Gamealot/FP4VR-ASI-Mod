@@ -19,28 +19,31 @@
 bool loadBin(const char* path, BYTE*& bin, long& size) {
 
 	FILE* f = fopen(path, "rb");
-	if (NULL == f) {
-		writeln("Load of modded bins failed.");
-		return false;
-	}
-	if (!fseek(f, 0, SEEK_END))
+	if (NULL == f)
+		goto err;
+
+	if (!fseek(f, 0, SEEK_END) || 0 != ferror(f))
 		goto err;
 
 	size = ftell(f) + 1;
 	if (size < MIN_REASONABLE_BINARY_FILE_SIZE)
 		goto err;
 
-	bin = (BYTE*)malloc(size);
+	if (!fseek(f, 0, SEEK_SET) || 0 != ferror(f))
+		goto err;
+
+	bin = (BYTE*)calloc(size, 0);
 	if (NULL == bin)
 		goto err;
 
-	if (size != fread(bin, sizeof(char), size, f))
+	if (size != fread(bin, sizeof(char), size, f) || 0 != ferror(f))
 		goto err;
 
 	fclose(f);
 	return true;
 
 err:
+	writeln("Load bin error.");
 	if(NULL != bin) {
 		free(f);
 	}
