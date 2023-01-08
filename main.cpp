@@ -306,6 +306,12 @@ void ProcessInternal_hook(UObject* Context, FFrame* Stack, void* Result) {
                             // Draw HUD
                             hud->SetTopLeft(350, 150);
                             //hud->SetVRAndGameData(hmdRot, leftRot, rightRot, param_MoveMag, MoveAngle, MoveRot);
+                            static uint64_t oldTime = timeSinceEpochMillisec();
+                            uint64_t nowTime = timeSinceEpochMillisec();
+                            if (nowTime - oldTime > 500) {
+                                oldTime = nowTime;
+                                hud->SetYaw(TheControllerYaw);
+                            }
                             processed = true;
                         //}
                     }
