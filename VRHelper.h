@@ -75,5 +75,6 @@ public:
 	void Get_Controller_Orientation(VROrientation& orientation, int controllerInd);
 	void Get_Controller_State(VR_Controller_State& state, int controllerInd);
 	void SetRenderControllers(bool state);
+	void SetGameCamRotationDeltaEuler(int pitchDelta, int yawDelta, int rollDelta);
 };
 
