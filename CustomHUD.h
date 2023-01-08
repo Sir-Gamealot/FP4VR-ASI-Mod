@@ -49,6 +49,9 @@ protected:
 
 	void RenderText(std::wstring msg, const float x, const float y, const BYTE r, const BYTE g, const BYTE b, const float alpha) {
 		if (_canvas) {
+			_canvas->SetDrawColor(0, 0, 0, 255);
+			_canvas->SetPos(topLeft.X + x + m_indent - 1, topLeft.Y + y + 64 - 1); //+ is Y start. To prevent overlay on top of the power bar thing
+			_canvas->DrawTextW(FString{ const_cast<wchar_t*>(msg.c_str()) }, 1, textScale+0.01f, textScale+0.01f, nullptr);
 			_canvas->SetDrawColor(r, g, b, (BYTE)(alpha * 255));
 			_canvas->SetPos(topLeft.X + x + m_indent, topLeft.Y + y + 64); //+ is Y start. To prevent overlay on top of the power bar thing
 			_canvas->DrawTextW(FString{ const_cast<wchar_t*>(msg.c_str()) }, 1, textScale, textScale, nullptr);
