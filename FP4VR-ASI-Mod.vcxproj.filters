@@ -5,6 +5,9 @@
       <UniqueIdentifier>{0849cd9c-254f-43ba-8216-bcdb2e587597}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="VorpX">
+      <UniqueIdentifier>{cbbea21d-2b3a-47f0-814b-558632c3dfbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -20,7 +23,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VorpX\vorpAPI.c">
-      <Filter>Source Files</Filter>
+      <Filter>VorpX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -28,9 +31,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VRHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VorpX\vorpAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tick.h">
@@ -47,6 +47,9 @@
     </ClInclude>
     <ClInclude Include="PCCBinaryHandler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VorpX\vorpAPI.h">
+      <Filter>VorpX</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
