@@ -14,6 +14,13 @@ public:
 		triggered = false;
 	}
 
+	Tick(int period, bool once, bool aStart) {
+		this->period = period;
+		this->once = once;
+		triggered = false;
+		if(aStart) start();
+	}
+
 	void start() {
 		when = time(NULL) + period;
 		triggered = false;
