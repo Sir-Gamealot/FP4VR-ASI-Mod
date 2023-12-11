@@ -172,3 +172,17 @@ void VRHelper::SetGameCamRotationDeltaEuler(int pitchDelta, int yawDelta, int ro
 	vpxRot.z = rollDelta;
 	vpxSetGameCamRotationDeltaEuler(vpxRot);
 }
+
+void VRHelper::Get_HMD_Position(VRPosition& pos) {
+	vpxfloat3 vpxPos = vpxGetHeadsetPosition();
+	pos.x = vpxPos.x;
+	pos.y = vpxPos.y;
+	pos.z = vpxPos.z;
+}
+
+void VRHelper::Get_Controller_Position(VRPosition& pos, int controllerInd) {
+	vpxfloat3 vpxPos = vpxGetControllerPosition(controllerInd);
+	pos.x = vpxPos.x;
+	pos.y = vpxPos.y;
+	pos.z = vpxPos.z;
+}

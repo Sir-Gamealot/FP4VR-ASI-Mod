@@ -29,6 +29,10 @@ typedef struct VROrientation_struct {
 	}
 } VROrientation;
 
+typedef struct VRPosition_struct {
+	float x, y, z;
+} VRPosition;
+
 typedef struct VR_Controller_State_struct {
 	unsigned int IsActive;			// VPX_TRUE if active, otherwise VPX_FALSE
 	float StickX;					// Thumbstick/pad x-axis [-1|1]
@@ -76,5 +80,7 @@ public:
 	void Get_Controller_State(VR_Controller_State& state, int controllerInd);
 	void SetRenderControllers(bool state);
 	void SetGameCamRotationDeltaEuler(int pitchDelta, int yawDelta, int rollDelta);
+	void Get_HMD_Position(VRPosition& pos);
+	void Get_Controller_Position(VRPosition& pos, int controllerInd);
 };
 
